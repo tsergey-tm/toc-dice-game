@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import "./Game.css"
-
+import StepSelector from "./StepSelector"
 
 const Game = () => {
 
@@ -19,6 +19,8 @@ const Game = () => {
     class StatRow {
         cells: StatData[] = [];
     }
+
+    init
 
     const [iterStep, setIterStep] = useState(20);
 
@@ -120,15 +122,15 @@ const Game = () => {
                 <tr>
                     <th>#</th>
                     <th>&#x221e;</th>
-                    <th>Мин: 1<br/>Макс: 6</th>
+                    <th><StepSelector key="ss-1"/></th>
                     <th>Старт: 4</th>
-                    <th>Мин: 1<br/>Макс: 6</th>
+                    <th><StepSelector key="ss-2"/></th>
                     <th>Старт: 4</th>
-                    <th>Мин: 1<br/>Макс: 6</th>
+                    <th><StepSelector key="ss-3"/></th>
                     <th>Старт: 4</th>
-                    <th>Мин: 1<br/>Макс: 6</th>
+                    <th><StepSelector key="ss-4"/></th>
                     <th>Старт: 4</th>
-                    <th>Мин: 1<br/>Макс: 6</th>
+                    <th><StepSelector key="ss-5"/></th>
                     <th>&nbsp;</th>
                 </tr>
                 </thead>
