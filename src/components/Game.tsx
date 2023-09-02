@@ -1,13 +1,17 @@
 import React, {useState} from "react";
 import "./Game.css"
-import StepSelector from "./StepSelector"
+import {StepInitParam, StepInitParamHandler, StepSelector} from "./StepSelector"
 
 const Game = () => {
 
     class StatData {
+        // Является ли ячейка буфером
         isBuffer: boolean;
+        // Для буфера - число элементов, для этапа - число реально перемещённых элементов
         count: number;
+        // Для этапа число элементов, которые он может перенести на этом шаге
         mayCount: number;
+
 
         constructor(isBuffer: boolean, count: number, mayCount: number) {
             this.isBuffer = isBuffer;
@@ -20,11 +24,27 @@ const Game = () => {
         cells: StatData[] = [];
     }
 
-    init
-
     const [iterStep, setIterStep] = useState(20);
 
     const [grid, setGridRow] = useState<StatRow[]>([]);
+
+    const stepInitParamHandler: StepInitParamHandler = function (newStepInitParam: StepInitParam) {
+        stepInitParam[newStepInitParam.index] = newStepInitParam;
+        setStepInitParam([...stepInitParam]);
+    }
+
+
+    function makeStepInitParams() {
+        return [
+            new StepInitParam(0, 1, 6, stepInitParamHandler),
+            new StepInitParam(1, 1, 6, stepInitParamHandler),
+            new StepInitParam(2, 1, 6, stepInitParamHandler),
+            new StepInitParam(3, 1, 6, stepInitParamHandler),
+            new StepInitParam(4, 1, 6, stepInitParamHandler)
+        ];
+    }
+
+    const [stepInitParam, setStepInitParam] = useState<StepInitParam[]>(makeStepInitParams());
 
     function runClick() {
         let row: StatRow = new StatRow();
@@ -46,12 +66,17 @@ const Game = () => {
 
         for (let i = 0; i < iterStep; i++) {
             const newRow: StatRow = new StatRow();
+            let k = 0;
             for (let j = row.cells.length - 1; j >= 0; j--) {
-                newRow.cells.unshift(new StatData(row.cells[j].isBuffer, row.cells[j].count, row.cells[j].mayCount));
+                let mc = 0;
+                if (!(row.cells[j].isBuffer)) {
+                    mc = Math.floor(Math.random() * (stepInitParam[k].maxValue - stepInitParam[k].minValue)) + stepInitParam[k].minValue;
+                    k++;
+                }
+                newRow.cells.unshift(new StatData(row.cells[j].isBuffer, row.cells[j].count, mc));
             }
             for (let j = newRow.cells.length - 1; j > 0; j--) {
                 if (!(newRow.cells[j].isBuffer)) {
-                    newRow.cells[j].mayCount = Math.floor(Math.random() * 5) + 1;
                     newRow.cells[j].count = (newRow.cells[j - 1].count < 0) ? newRow.cells[j].mayCount : Math.min(newRow.cells[j].mayCount, newRow.cells[j - 1].count);
                     newRow.cells[j - 1].count -= newRow.cells[j].count;
                     newRow.cells[j + 1].count += newRow.cells[j].count;
@@ -63,8 +88,8 @@ const Game = () => {
         setGridRow(rowArr);
     }
 
-    function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-        setIterStep(Math.max(1, Math.min(1000, Number(event.target.value))));
+    function handleChangeIterStep(event: React.ChangeEvent<HTMLInputElement>) {
+        setIterStep(Math.max(10, Math.min(1000, Number(event.target.value))));
     }
 
     const BodyData = () => {
@@ -98,8 +123,9 @@ const Game = () => {
             Число итераций <input
             type="number"
             placeholder="Число итерациий"
+            min={10} max={1000}
             value={iterStep}
-            onChange={handleChange}
+            onChange={handleChangeIterStep}
         />&nbsp;
             <button onClick={runClick}>Запустить</button>
             <br/>
@@ -122,15 +148,25 @@ const Game = () => {
                 <tr>
                     <th>#</th>
                     <th>&#x221e;</th>
-                    <th><StepSelector key="ss-1"/></th>
+                    <th><StepSelector index={stepInitParam[0].index} minValue={stepInitParam[0].minValue}
+                                      maxValue={stepInitParam[0].maxValue} handler={stepInitParam[0].handler}
+                                      key="ss-1"/></th>
                     <th>Старт: 4</th>
-                    <th><StepSelector key="ss-2"/></th>
+                    <th><StepSelector index={stepInitParam[1].index} minValue={stepInitParam[1].minValue}
+                                      maxValue={stepInitParam[1].maxValue} handler={stepInitParam[1].handler}
+                                      key="ss-2"/></th>
                     <th>Старт: 4</th>
-                    <th><StepSelector key="ss-3"/></th>
+                    <th><StepSelector index={stepInitParam[2].index} minValue={stepInitParam[2].minValue}
+                                      maxValue={stepInitParam[2].maxValue} handler={stepInitParam[2].handler}
+                                      key="ss-3"/></th>
                     <th>Старт: 4</th>
-                    <th><StepSelector key="ss-4"/></th>
+                    <th><StepSelector index={stepInitParam[3].index} minValue={stepInitParam[3].minValue}
+                                      maxValue={stepInitParam[3].maxValue} handler={stepInitParam[3].handler}
+                                      key="ss-4"/></th>
                     <th>Старт: 4</th>
-                    <th><StepSelector key="ss-5"/></th>
+                    <th><StepSelector index={stepInitParam[4].index} minValue={stepInitParam[4].minValue}
+                                      maxValue={stepInitParam[4].maxValue} handler={stepInitParam[4].handler}
+                                      key="ss-5"/></th>
                     <th>&nbsp;</th>
                 </tr>
                 </thead>
