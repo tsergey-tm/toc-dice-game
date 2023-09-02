@@ -17,19 +17,21 @@ class StepInitParam {
 type StepInitParamHandler = (a: StepInitParam) => void;
 const StepSelector: FC<StepInitParam> = (initParam: StepInitParam) => {
 
-    let [minValue, setMinValue] = useState(initParam.minValue);
+    const [minValue, setMinValue] = useState(initParam.minValue);
     const [maxValue, setMaxValue] = useState(initParam.maxValue);
 
     function handleChangeMin(event: React.ChangeEvent<HTMLInputElement>) {
-        setMinValue(Math.max(1, Math.min(maxValue, 100, Number(event.target.value))));
+        const value = Math.max(0, Math.min(maxValue, 100, Number(event.target.value)));
+        setMinValue(value);
 
-        initParam.handler(new StepInitParam(initParam.index, minValue, maxValue, initParam.handler));
+        initParam.handler(new StepInitParam(initParam.index, value, maxValue, initParam.handler));
     }
 
     function handleChangeMax(event: React.ChangeEvent<HTMLInputElement>) {
-        setMaxValue(Math.max(minValue, 1, Math.min(100, Number(event.target.value))));
+        const value = Math.max(minValue, 0, Math.min(100, Number(event.target.value)));
+        setMaxValue(value);
 
-        initParam.handler(new StepInitParam(initParam.index, minValue, maxValue, initParam.handler));
+        initParam.handler(new StepInitParam(initParam.index, minValue, value, initParam.handler));
     }
 
     return (
