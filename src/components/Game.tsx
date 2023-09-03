@@ -12,12 +12,17 @@ const Game = () => {
         count: number;
         // Для этапа число элементов, которые он может перенести на этом шаге
         mayCount: number;
+        // Для буфера - лимит буфера. Если равно 0, то лимита нет
+        limit: number;
+        // Для этапа - ссылка на ведущий этап, если 0, то этот этап самостоятельный
+        acceptFrom: number;
 
-
-        constructor(isBuffer: boolean, count: number, mayCount: number) {
+        constructor(isBuffer: boolean, count: number, mayCount: number, limit: number, acceptFrom: number) {
             this.isBuffer = isBuffer;
             this.count = count;
             this.mayCount = mayCount;
+            this.limit = limit;
+            this.acceptFrom = acceptFrom;
         }
     }
 
@@ -41,11 +46,11 @@ const Game = () => {
 
     function makeStepInitParams() {
         return [
-            new StepInitParam(0, 1, 6, stepInitParamHandler),
-            new StepInitParam(1, 1, 6, stepInitParamHandler),
-            new StepInitParam(2, 1, 6, stepInitParamHandler),
-            new StepInitParam(3, 1, 6, stepInitParamHandler),
-            new StepInitParam(4, 1, 6, stepInitParamHandler)
+            new StepInitParam(0, 1, 6, 0),
+            new StepInitParam(1, 1, 6, 0),
+            new StepInitParam(2, 1, 6, 0),
+            new StepInitParam(3, 1, 6, 0),
+            new StepInitParam(4, 1, 6, 0)
         ];
     }
 
@@ -53,10 +58,10 @@ const Game = () => {
 
     function makeBufferInitParams() {
         return [
-            new BufferInitParam(0, 4, bufferInitParamHandler),
-            new BufferInitParam(1, 4, bufferInitParamHandler),
-            new BufferInitParam(2, 4, bufferInitParamHandler),
-            new BufferInitParam(3, 4, bufferInitParamHandler)
+            new BufferInitParam(0, 4, false),
+            new BufferInitParam(1, 4, false),
+            new BufferInitParam(2, 4, false),
+            new BufferInitParam(3, 4, false)
         ];
     }
 
@@ -65,17 +70,19 @@ const Game = () => {
     function runClick() {
         let row: StatRow = new StatRow();
 
-        row.cells.push(new StatData(true, -1, 0));
-        row.cells.push(new StatData(false, 0, 0));
-        row.cells.push(new StatData(true, bufferInitParam[0].value, 0));
-        row.cells.push(new StatData(false, 0, 0));
-        row.cells.push(new StatData(true, bufferInitParam[1].value, 0));
-        row.cells.push(new StatData(false, 0, 0));
-        row.cells.push(new StatData(true, bufferInitParam[2].value, 0));
-        row.cells.push(new StatData(false, 0, 0));
-        row.cells.push(new StatData(true, bufferInitParam[3].value, 0));
-        row.cells.push(new StatData(false, 0, 0));
-        row.cells.push(new StatData(true, 0, 0));
+        const acceptFromIndexes = [0, 1, 3, 5, 7, 9];
+
+        row.cells.push(new StatData(true, -1, 0, 0, 0));
+        row.cells.push(new StatData(false, 0, 0, stepInitParam[0].maxValue, acceptFromIndexes[stepInitParam[0].acceptFrom]));
+        row.cells.push(new StatData(true, bufferInitParam[0].value, 0, bufferInitParam[0].limit ? bufferInitParam[0].value : 0, 0));
+        row.cells.push(new StatData(false, 0, 0, stepInitParam[1].maxValue, acceptFromIndexes[stepInitParam[1].acceptFrom]));
+        row.cells.push(new StatData(true, bufferInitParam[1].value, 0, bufferInitParam[1].limit ? bufferInitParam[1].value : 0, 0));
+        row.cells.push(new StatData(false, 0, 0, stepInitParam[2].maxValue, acceptFromIndexes[stepInitParam[2].acceptFrom]));
+        row.cells.push(new StatData(true, bufferInitParam[2].value, 0, bufferInitParam[2].limit ? bufferInitParam[2].value : 0, 0));
+        row.cells.push(new StatData(false, 0, 0, stepInitParam[3].maxValue, acceptFromIndexes[stepInitParam[3].acceptFrom]));
+        row.cells.push(new StatData(true, bufferInitParam[3].value, 0, bufferInitParam[3].limit ? bufferInitParam[3].value : 0, 0));
+        row.cells.push(new StatData(false, 0, 0, stepInitParam[4].maxValue, acceptFromIndexes[stepInitParam[4].acceptFrom]));
+        row.cells.push(new StatData(true, 0, 0, 0, 0));
 
         let rowArr = [row];
 
@@ -83,19 +90,47 @@ const Game = () => {
         for (let i = 0; i < iterStep; i++) {
             const newRow: StatRow = new StatRow();
             let k = stepInitParam.length;
+            let steps: number[] = [];
             for (let j = row.cells.length - 1; j >= 0; j--) {
                 let mc = 0;
                 if (!(row.cells[j].isBuffer)) {
                     k--;
                     mc = Math.floor(Math.random() * (stepInitParam[k].maxValue - stepInitParam[k].minValue)) + stepInitParam[k].minValue;
+                    steps.push(j);
                 }
-                newRow.cells.unshift(new StatData(row.cells[j].isBuffer, row.cells[j].count, mc));
+                newRow.cells.unshift(new StatData(row.cells[j].isBuffer, row.cells[j].count, mc, row.cells[j].limit, row.cells[j].acceptFrom));
             }
+
+            while (steps.length > 0) {
+                let index = 0;
+                if (newRow.cells[steps[index]].acceptFrom > 0) {
+                    let index1 = steps.indexOf(newRow.cells[steps[index]].acceptFrom);
+                    while (index1 > 0) {
+                        index = index1;
+                        index1 = steps.indexOf(newRow.cells[steps[index]].acceptFrom);
+                    }
+                    newRow.cells[steps[index]].mayCount = Math.min(newRow.cells[steps[index]].limit, newRow.cells[newRow.cells[steps[index]].acceptFrom].mayCount);
+
+                    steps.splice(index, 1);
+                } else {
+                    steps.splice(index, 1);
+                }
+            }
+
             for (let j = newRow.cells.length - 1; j > 0; j--) {
                 if (!(newRow.cells[j].isBuffer)) {
-                    newRow.cells[j].count = (newRow.cells[j - 1].count < 0) ? newRow.cells[j].mayCount : Math.min(newRow.cells[j].mayCount, newRow.cells[j - 1].count);
-                    newRow.cells[j - 1].count -= newRow.cells[j].count;
-                    newRow.cells[j + 1].count += newRow.cells[j].count;
+                    let cnt = (newRow.cells[j - 1].count < 0) ?
+                        newRow.cells[j].mayCount :
+                        Math.min(newRow.cells[j].mayCount, newRow.cells[j - 1].count);
+
+                    if (newRow.cells[j + 1].limit > 0) {
+
+                        cnt = Math.min(newRow.cells[j + 1].limit - newRow.cells[j + 1].count, cnt)
+                    }
+
+                    newRow.cells[j].count = cnt;
+                    newRow.cells[j - 1].count -= cnt;
+                    newRow.cells[j + 1].count += cnt;
                 }
             }
             rowArr.unshift(newRow);
@@ -164,29 +199,19 @@ const Game = () => {
                 <tr>
                     <th>#</th>
                     <th>&#x221e;</th>
-                    <th><StepSelector index={stepInitParam[0].index} minValue={stepInitParam[0].minValue}
-                                      maxValue={stepInitParam[0].maxValue} handler={stepInitParam[0].handler}
-                                      key="ss-1"/></th>
-                    <th><BufferSelector index={bufferInitParam[0].index} value={bufferInitParam[0].value}
-                                        handler={bufferInitParam[0].handler} key="bs-1"/></th>
-                    <th><StepSelector index={stepInitParam[1].index} minValue={stepInitParam[1].minValue}
-                                      maxValue={stepInitParam[1].maxValue} handler={stepInitParam[1].handler}
-                                      key="ss-2"/></th>
-                    <th><BufferSelector index={bufferInitParam[1].index} value={bufferInitParam[1].value}
-                                        handler={bufferInitParam[1].handler} key="bs-1"/></th>
-                    <th><StepSelector index={stepInitParam[2].index} minValue={stepInitParam[2].minValue}
-                                      maxValue={stepInitParam[2].maxValue} handler={stepInitParam[2].handler}
-                                      key="ss-3"/></th>
-                    <th><BufferSelector index={bufferInitParam[2].index} value={bufferInitParam[2].value}
-                                        handler={bufferInitParam[2].handler} key="bs-1"/></th>
-                    <th><StepSelector index={stepInitParam[3].index} minValue={stepInitParam[3].minValue}
-                                      maxValue={stepInitParam[3].maxValue} handler={stepInitParam[3].handler}
-                                      key="ss-4"/></th>
-                    <th><BufferSelector index={bufferInitParam[3].index} value={bufferInitParam[3].value}
-                                        handler={bufferInitParam[3].handler} key="bs-1"/></th>
-                    <th><StepSelector index={stepInitParam[4].index} minValue={stepInitParam[4].minValue}
-                                      maxValue={stepInitParam[4].maxValue} handler={stepInitParam[4].handler}
-                                      key="ss-5"/></th>
+                    <th><StepSelector initParam={stepInitParam[0]} handler={stepInitParamHandler} key="ss-1"/></th>
+                    <th><BufferSelector initParam={bufferInitParam[0]} handler={bufferInitParamHandler} key="bs-1"/>
+                    </th>
+                    <th><StepSelector initParam={stepInitParam[1]} handler={stepInitParamHandler} key="ss-2"/></th>
+                    <th><BufferSelector initParam={bufferInitParam[1]} handler={bufferInitParamHandler}
+                                        key="bs-1"/></th>
+                    <th><StepSelector initParam={stepInitParam[2]} handler={stepInitParamHandler} key="ss-3"/></th>
+                    <th><BufferSelector initParam={bufferInitParam[2]} handler={bufferInitParamHandler}
+                                        key="bs-1"/></th>
+                    <th><StepSelector initParam={stepInitParam[3]} handler={stepInitParamHandler} key="ss-4"/></th>
+                    <th><BufferSelector initParam={bufferInitParam[3]} handler={bufferInitParamHandler}
+                                        key="bs-1"/></th>
+                    <th><StepSelector initParam={stepInitParam[4]} handler={stepInitParamHandler} key="ss-5"/></th>
                     <th>&nbsp;</th>
                 </tr>
                 </thead>
