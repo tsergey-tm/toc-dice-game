@@ -1,5 +1,4 @@
 import React, {FC, useState} from "react";
-import Select from 'react-select';
 
 class StepInitParam {
     index: number;
@@ -55,19 +54,22 @@ const StepSelector: FC<StepInitComponentParam> = (param: StepInitComponentParam)
         }
     }
 
-    function setAcceptFromOption(option: { value: number, label: string } | null) {
-        const value = option == null ? 0 : option.value;
-        setAcceptFrom(value);
+    function setAcceptFromOption( newValue: number) {
 
-        param.handler(new StepInitParam(param.initParam.index, minValue, maxValue, value));
+        setAcceptFrom(newValue);
+
+        param.handler(new StepInitParam(param.initParam.index, minValue, maxValue, newValue));
     }
 
     return (
-        <p><Select
-            options={options}
-            defaultValue={options[acceptFrom]}
-            onChange={setAcceptFromOption}
-        />
+        <p><select
+            onChange={e => setAcceptFromOption(Number(e.target.value))}
+        >
+            {
+                options.map(({value,label}) =>
+                    <option key={"stepsel-"+param.initParam.index+"-val-"+value} value={value}>{label}</option> )
+            }
+        </select><br/>
             Мин: <input
                 type="number"
                 placeholder="Min"
