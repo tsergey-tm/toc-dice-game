@@ -2,6 +2,7 @@ import React, {useState} from "react";
 import "./Game.css"
 import {StepInitParam, StepInitParamHandler, StepSelector} from "./StepSelector"
 import {BufferInitParam, BufferInitParamHandler, BufferSelector} from "./BufferSelector";
+import {BufferData, Chart, ChartParam, FlowData} from "./Chart";
 
 const Game = () => {
 
@@ -29,6 +30,8 @@ const Game = () => {
     class StatRow {
         cells: StatData[] = [];
     }
+
+    const [chartParam, setChartParam] = useState<null | ChartParam>(null);
 
     const [iterStep, setIterStep] = useState(20);
 
@@ -66,6 +69,39 @@ const Game = () => {
     }
 
     const [bufferInitParam, setBufferInitParam] = useState<BufferInitParam[]>(makeBufferInitParams());
+
+    function makeCharts(rowArr: StatRow[]) {
+
+        let means: number[] = [];
+        stepInitParam.forEach(v => means.push((v.minValue + v.maxValue) / 2));
+        const mean = Math.min(...means);
+
+        rowArr.reverse();
+
+        let flowData: FlowData[] = [];
+        let flowLast = 0;
+        const exitIndex = 10;
+        let bufferData: BufferData[] = [];
+        rowArr.forEach((value, index) => {
+            flowData.push(new FlowData(
+                value.cells[exitIndex].count,
+                value.cells[exitIndex].count - flowLast,
+                mean * index
+            ));
+            flowLast = value.cells[exitIndex].count;
+
+            let buffData = new BufferData([])
+            for (let i = 1; i < exitIndex; i++) {
+                if (value.cells[i].isBuffer) {
+                    buffData.counts.push(value.cells[i].count);
+                }
+            }
+
+            bufferData.push(buffData);
+        });
+
+        setChartParam(new ChartParam(bufferData, flowData));
+    }
 
     function runClick() {
         let row: StatRow = new StatRow();
@@ -137,6 +173,7 @@ const Game = () => {
             row = newRow;
         }
         setGridRow(rowArr);
+        makeCharts([...rowArr]);
     }
 
     function handleChangeIterStep(event: React.ChangeEvent<HTMLInputElement>) {
@@ -179,6 +216,8 @@ const Game = () => {
             onChange={handleChangeIterStep}
         />&nbsp;
             <button onClick={runClick}>Запустить</button>
+            <br/>
+            {chartParam ? (<Chart bufferData={chartParam.bufferData} flowData={chartParam.flowData}/>) : null}
             <br/>
             <table className="gridTable">
                 <thead>
