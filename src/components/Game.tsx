@@ -2,13 +2,19 @@ import React, {useState} from "react";
 import "./Game.css"
 import {StepInitParam, StepInitParamHandler, StepSelector} from "./StepSelector"
 import {BufferInitParam, BufferInitParamHandler, BufferSelector} from "./BufferSelector";
-import {BufferData, Chart, ChartParam, FlowData} from "./Chart";
+import {BufferData, Chart, ChartParam, ControlData, FlowData} from "./Chart";
 
 const Game = () => {
 
     class StatData {
+        // Индекс элемента в init параметрах
+        index: number;
         // Является ли ячейка буфером
         isBuffer: boolean;
+        // Является ли шаг первым
+        isFirst: boolean;
+        // Является ли шаг последним
+        isLast: boolean;
         // Для буфера - число элементов, для этапа - число реально перемещённых элементов
         count: number;
         // Для этапа число элементов, которые он может перенести на этом шаге
@@ -18,13 +24,31 @@ const Game = () => {
         // Для этапа - ссылка на ведущий этап, если 0, то этот этап самостоятельный
         acceptFrom: number;
 
-        constructor(isBuffer: boolean, count: number, mayCount: number, limit: number, acceptFrom: number) {
+        constructor(index: number, isBuffer: boolean, isFirst: boolean, isLast: boolean, count: number,
+                    mayCount: number, limit: number, acceptFrom: number) {
+            this.index = index;
             this.isBuffer = isBuffer;
+            this.isFirst = isFirst;
+            this.isLast = isLast;
             this.count = count;
             this.mayCount = mayCount;
             this.limit = limit;
             this.acceptFrom = acceptFrom;
         }
+    }
+
+    class Task {
+        firstTime: number;
+        lastTime: number;
+
+        constructor(firstTime: number, lastTime: number) {
+            this.firstTime = firstTime;
+            this.lastTime = lastTime;
+        }
+    }
+
+    class Buffer {
+        tasks: Task[] = [];
     }
 
     class StatRow {
@@ -70,7 +94,7 @@ const Game = () => {
 
     const [bufferInitParam, setBufferInitParam] = useState<BufferInitParam[]>(makeBufferInitParams());
 
-    function makeCharts(rowArr: StatRow[]) {
+    function makeCharts(rowArr: StatRow[], buffers: Buffer[]) {
 
         let means: number[] = [];
         stepInitParam.forEach(v => means.push((v.minValue + v.maxValue) / 2));
@@ -100,7 +124,14 @@ const Game = () => {
             bufferData.push(buffData);
         });
 
-        setChartParam(new ChartParam(bufferData, flowData));
+        let controlData: ControlData = new ControlData([]);
+        buffers[buffers.length - 1].tasks.forEach(t => {
+            if ((t.firstTime >= 0) && (t.lastTime >= 0)) {
+                controlData.times.push(t.lastTime - t.firstTime);
+            }
+        })
+
+        setChartParam(new ChartParam(bufferData, flowData, controlData));
     }
 
     function runClick() {
@@ -108,33 +139,52 @@ const Game = () => {
 
         const acceptFromIndexes = [0, 1, 3, 5, 7, 9];
 
-        row.cells.push(new StatData(true, -1, 0, 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[0].maxValue, acceptFromIndexes[stepInitParam[0].acceptFrom]));
-        row.cells.push(new StatData(true, bufferInitParam[0].value, 0, bufferInitParam[0].limit ? bufferInitParam[0].value : 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[1].maxValue, acceptFromIndexes[stepInitParam[1].acceptFrom]));
-        row.cells.push(new StatData(true, bufferInitParam[1].value, 0, bufferInitParam[1].limit ? bufferInitParam[1].value : 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[2].maxValue, acceptFromIndexes[stepInitParam[2].acceptFrom]));
-        row.cells.push(new StatData(true, bufferInitParam[2].value, 0, bufferInitParam[2].limit ? bufferInitParam[2].value : 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[3].maxValue, acceptFromIndexes[stepInitParam[3].acceptFrom]));
-        row.cells.push(new StatData(true, bufferInitParam[3].value, 0, bufferInitParam[3].limit ? bufferInitParam[3].value : 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[4].maxValue, acceptFromIndexes[stepInitParam[4].acceptFrom]));
-        row.cells.push(new StatData(true, 0, 0, 0, 0));
+        const buffers: Buffer[] = [new Buffer(), new Buffer(), new Buffer(), new Buffer(), new Buffer()];
+
+        row.cells.push(new StatData(-1, true, true, false, -1, 0, 0, 0));
+        row.cells.push(new StatData(0, false, true, false, 0, 0, stepInitParam[0].maxValue, acceptFromIndexes[stepInitParam[0].acceptFrom]));
+        row.cells.push(new StatData(0, true, false, false, bufferInitParam[0].value, 0, bufferInitParam[0].limit ? bufferInitParam[0].value : 0, 0));
+        row.cells.push(new StatData(1, false, false, false, 0, 0, stepInitParam[1].maxValue, acceptFromIndexes[stepInitParam[1].acceptFrom]));
+        row.cells.push(new StatData(1, true, false, false, bufferInitParam[1].value, 0, bufferInitParam[1].limit ? bufferInitParam[1].value : 0, 0));
+        row.cells.push(new StatData(2, false, false, false, 0, 0, stepInitParam[2].maxValue, acceptFromIndexes[stepInitParam[2].acceptFrom]));
+        row.cells.push(new StatData(2, true, false, false, bufferInitParam[2].value, 0, bufferInitParam[2].limit ? bufferInitParam[2].value : 0, 0));
+        row.cells.push(new StatData(3, false, false, false, 0, 0, stepInitParam[3].maxValue, acceptFromIndexes[stepInitParam[3].acceptFrom]));
+        row.cells.push(new StatData(3, true, false, false, bufferInitParam[3].value, 0, bufferInitParam[3].limit ? bufferInitParam[3].value : 0, 0));
+        row.cells.push(new StatData(4, false, false, true, 0, 0, stepInitParam[4].maxValue, acceptFromIndexes[stepInitParam[4].acceptFrom]));
+        row.cells.push(new StatData(4, true, false, true, 0, 0, 0, 0));
+
+        for (let cell of row.cells) {
+            if (cell.isBuffer && !cell.isFirst) {
+                for (let i = 0; i < cell.count; i++) {
+                    buffers[cell.index].tasks.push(new Task(-1, -1));
+                }
+            }
+        }
 
         let rowArr = [row];
 
 
-        for (let i = 0; i < iterStep; i++) {
+        for (let iteration = 1; iteration <= iterStep; iteration++) {
             const newRow: StatRow = new StatRow();
-            let k = stepInitParam.length;
             let steps: number[] = [];
             for (let j = row.cells.length - 1; j >= 0; j--) {
                 let mc = 0;
                 if (!(row.cells[j].isBuffer)) {
-                    k--;
-                    mc = Math.floor(Math.random() * (stepInitParam[k].maxValue - stepInitParam[k].minValue)) + stepInitParam[k].minValue;
+                    mc = Math.floor(
+                        Math.random() * (stepInitParam[row.cells[j].index].maxValue -
+                            stepInitParam[row.cells[j].index].minValue)
+                    ) + stepInitParam[row.cells[j].index].minValue;
                     steps.push(j);
                 }
-                newRow.cells.unshift(new StatData(row.cells[j].isBuffer, row.cells[j].count, mc, row.cells[j].limit, row.cells[j].acceptFrom));
+                newRow.cells.unshift(new StatData(
+                    row.cells[j].index,
+                    row.cells[j].isBuffer,
+                    row.cells[j].isFirst,
+                    row.cells[j].isLast,
+                    row.cells[j].count,
+                    mc,
+                    row.cells[j].limit,
+                    row.cells[j].acceptFrom));
             }
 
             while (steps.length > 0) {
@@ -167,13 +217,37 @@ const Game = () => {
                     newRow.cells[j].count = cnt;
                     newRow.cells[j - 1].count -= cnt;
                     newRow.cells[j + 1].count += cnt;
+
+                    if (newRow.cells[j].isFirst) {
+                        const ni = newRow.cells[j + 1].index;
+                        for (let k = 0; k < cnt; k++) {
+                            buffers[ni].tasks.push(new Task(iteration, -1));
+                        }
+                    } else if (newRow.cells[j].isLast) {
+                        const oi = newRow.cells[j - 1].index;
+                        const ni = newRow.cells[j + 1].index;
+                        for (let k = 0; k < cnt; k++) {
+                            const task = buffers[oi].tasks.shift();
+                            // @ts-ignore
+                            task.lastTime = iteration;
+                            // @ts-ignore
+                            buffers[ni].tasks.push(task);
+                        }
+                    } else {
+                        const oi = newRow.cells[j - 1].index;
+                        const ni = newRow.cells[j + 1].index;
+                        for (let k = 0; k < cnt; k++) {
+                            // @ts-ignore
+                            buffers[ni].tasks.push(buffers[oi].tasks.shift());
+                        }
+                    }
                 }
             }
             rowArr.unshift(newRow);
             row = newRow;
         }
         setGridRow(rowArr);
-        makeCharts([...rowArr]);
+        makeCharts([...rowArr], buffers);
     }
 
     function handleChangeIterStep(event: React.ChangeEvent<HTMLInputElement>) {
@@ -217,7 +291,8 @@ const Game = () => {
         />&nbsp;
             <button onClick={runClick}>Запустить</button>
             <br/>
-            {chartParam ? (<Chart bufferData={chartParam.bufferData} flowData={chartParam.flowData}/>) : null}
+            {chartParam ? (<Chart bufferData={chartParam.bufferData} flowData={chartParam.flowData}
+                                  controlData={chartParam.controlData}/>) : null}
             <br/>
             <table className="gridTable">
                 <thead>
