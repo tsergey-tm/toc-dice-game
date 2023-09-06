@@ -253,7 +253,7 @@ const Chart: FC<ChartParam> = (param: ChartParam) => {
                     snap: true,
                     label: {},
                 },
-                type: 'category',
+                type: 'value',
                 axisLabel: {
                     hideOverlap: true,
                 },
@@ -287,7 +287,7 @@ const Chart: FC<ChartParam> = (param: ChartParam) => {
                     snap: true,
                     label: {},
                 },
-                type: 'category',
+                type: 'value',
                 axisLabel: {
                     hideOverlap: true,
                 },
