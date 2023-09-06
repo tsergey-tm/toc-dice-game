@@ -58,7 +58,7 @@ const Game = () => {
 
     const [chartParam, setChartParam] = useState<null | ChartParam>(null);
 
-    const [iterStep, setIterStep] = useState(100);
+    const [iterStep, setIterStep] = useState(20);
 
     const [grid, setGridRow] = useState<StatRow[]>([]);
 
@@ -221,7 +221,7 @@ const Game = () => {
     }
 
     function handleChangeIterStep(event: React.ChangeEvent<HTMLInputElement>) {
-        setIterStep(Math.max(10, Math.min(1000, Number(event.target.value))));
+        setIterStep(Math.max(1, Math.min(1000, Number(event.target.value))));
     }
 
     const BodyData = () => {
@@ -264,6 +264,7 @@ const Game = () => {
             new BufferInitParam(2, 4, false),
             new BufferInitParam(3, 4, false)
         ]));
+        setIterStep(20);
     }
 
     function setCoxGame2() {
@@ -280,6 +281,7 @@ const Game = () => {
             new BufferInitParam(2, 4, false),
             new BufferInitParam(3, 4, false)
         ]));
+        setIterStep(20);
     }
 
     function setCoxGame3() {
@@ -296,6 +298,7 @@ const Game = () => {
             new BufferInitParam(2, 20, false),
             new BufferInitParam(3, 4, false)
         ]));
+        setIterStep(20);
     }
 
     function setCoxGame4() {
@@ -312,6 +315,7 @@ const Game = () => {
             new BufferInitParam(2, 20, false),
             new BufferInitParam(3, 4, false)
         ]));
+        setIterStep(20);
     }
 
     function setKanbanGame() {
@@ -328,6 +332,7 @@ const Game = () => {
             new BufferInitParam(2, 20, true),
             new BufferInitParam(3, 6, true)
         ]));
+        setIterStep(100);
     }
 
     return (
@@ -347,7 +352,7 @@ const Game = () => {
             <div>Число итераций <input
                 type="number"
                 placeholder="Число итерациий"
-                min={10} max={1000}
+                min={1} max={1000}
                 value={iterStep}
                 onChange={handleChangeIterStep}
             />&nbsp;
