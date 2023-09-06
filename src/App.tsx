@@ -1,11 +1,14 @@
 import React from 'react';
 import './App.css';
 import Game from "./components/Game";
+import {GameContextProvider} from "./components/GameContext";
 
 function App() {
     return (
         <div className="App">
-            <Game></Game>
+            <GameContextProvider>
+                <Game/>
+            </GameContextProvider>
         </div>
     );
 }

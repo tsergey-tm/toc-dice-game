@@ -1,58 +1,39 @@
-import React, {FC, useState} from "react";
+import React, {FC} from "react";
+import {BufferInitParam, IndexParam, useGameContext} from "./GameContext"
 
-class BufferInitParam {
-    index: number;
-    value: number;
-    limit: boolean;
 
-    constructor(index: number, value: number, limit: boolean) {
-        this.index = index;
-        this.value = value;
-        this.limit = limit;
-    }
-}
+const BufferSelector: FC<IndexParam> = (val: IndexParam) => {
 
-class BufferInitComponentParam {
-    initParam: BufferInitParam;
-    handler: BufferInitParamHandler;
-
-    constructor(initParam: BufferInitParam, handler: BufferInitParamHandler) {
-        this.initParam = initParam;
-        this.handler = handler;
-    }
-}
-
-type BufferInitParamHandler = (a: BufferInitParam) => void;
-
-const BufferSelector: FC<BufferInitComponentParam> = (param: BufferInitComponentParam) => {
-
-    const [value, setValue] = useState(param.initParam.value);
-    const [limit, setLimit] = useState(param.initParam.limit);
+    const {initParams, setInitParams} = useGameContext();
 
     function handleChangeValue(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = Math.max(0, Math.min(1000, Number(event.target.value)));
-        setValue(value);
+        let value = Number(event.target.value);
+        value = Math.max(0, Math.min(1000, value));
 
-        param.handler(new BufferInitParam(param.initParam.index, value, limit));
+        let newInitParams = structuredClone(initParams);
+        newInitParams.bufferInitParam[val.index].value = value;
+
+        setInitParams(newInitParams);
     }
 
     function handleChangeLimit(event: React.ChangeEvent<HTMLInputElement>) {
-        const limit: boolean = Boolean(event.target.checked);
-        setLimit(limit);
 
-        param.handler(new BufferInitParam(param.initParam.index, value, limit));
+        let newInitParams = structuredClone(initParams);
+        newInitParams.bufferInitParam[val.index].limit = Boolean(event.target.checked);
+
+        setInitParams(newInitParams);
     }
 
     return (
         <p>Старт: <input
             type="number"
             placeholder="Start"
-            value={value} min={0} max={1000}
+            value={initParams.bufferInitParam[val.index].value} min={0} max={1000}
             onChange={handleChangeValue}
         /><br/>
-            <input type="checkbox" id={"limit-" + param.initParam.index}
-                   name="лимит" checked={param.initParam.limit} onChange={handleChangeLimit}/>
-            <label htmlFor={"limit-" + param.initParam.index}>лимит</label>
+            <input type="checkbox" id={"limit-" + initParams.bufferInitParam[val.index].index}
+                   name="лимит" checked={initParams.bufferInitParam[val.index].limit} onChange={handleChangeLimit}/>
+            <label htmlFor={"limit-" + val.index}>лимит</label>
         </p>
     );
 }
@@ -62,6 +43,4 @@ export {
     BufferSelector,
     BufferInitParam
 };
-
-export type {BufferInitParamHandler};
 

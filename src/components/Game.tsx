@@ -1,13 +1,21 @@
 import React, {useState} from "react";
 import "./Game.css"
-import {StepInitParam, StepInitParamHandler, StepSelector} from "./StepSelector"
-import {BufferInitParam, BufferInitParamHandler, BufferSelector} from "./BufferSelector";
+import {StepInitParam, StepSelector} from "./StepSelector"
+import {BufferInitParam, BufferSelector} from "./BufferSelector";
+import {BufferData, Chart, ChartParam, ControlData, FlowData} from "./Chart";
+import {InitParams, useGameContext} from "./GameContext";
 
 const Game = () => {
 
     class StatData {
+        // Индекс элемента в init параметрах
+        index: number;
         // Является ли ячейка буфером
         isBuffer: boolean;
+        // Является ли шаг первым
+        isFirst: boolean;
+        // Является ли шаг последним
+        isLast: boolean;
         // Для буфера - число элементов, для этапа - число реально перемещённых элементов
         count: number;
         // Для этапа число элементов, которые он может перенести на этом шаге
@@ -17,8 +25,12 @@ const Game = () => {
         // Для этапа - ссылка на ведущий этап, если 0, то этот этап самостоятельный
         acceptFrom: number;
 
-        constructor(isBuffer: boolean, count: number, mayCount: number, limit: number, acceptFrom: number) {
+        constructor(index: number, isBuffer: boolean, isFirst: boolean, isLast: boolean, count: number,
+                    mayCount: number, limit: number, acceptFrom: number) {
+            this.index = index;
             this.isBuffer = isBuffer;
+            this.isFirst = isFirst;
+            this.isLast = isLast;
             this.count = count;
             this.mayCount = mayCount;
             this.limit = limit;
@@ -26,79 +38,123 @@ const Game = () => {
         }
     }
 
+    class Task {
+        firstTime: number;
+        lastTime: number;
+
+        constructor(firstTime: number, lastTime: number) {
+            this.firstTime = firstTime;
+            this.lastTime = lastTime;
+        }
+    }
+
+    class Buffer {
+        tasks: Task[] = [];
+    }
+
     class StatRow {
         cells: StatData[] = [];
     }
 
-    const [iterStep, setIterStep] = useState(20);
+    const [chartParam, setChartParam] = useState<null | ChartParam>(null);
+
+    const [iterStep, setIterStep] = useState(100);
 
     const [grid, setGridRow] = useState<StatRow[]>([]);
 
-    const stepInitParamHandler: StepInitParamHandler = function (newStepInitParam: StepInitParam) {
-        stepInitParam[newStepInitParam.index] = newStepInitParam;
-        setStepInitParam([...stepInitParam]);
+    const {initParams, setInitParams} = useGameContext();
+
+    function makeCharts(rowArr: StatRow[], buffers: Buffer[]) {
+
+        let means: number[] = [];
+        initParams?.stepInitParam.forEach(v => means.push((v.minValue + v.maxValue) / 2));
+        const mean = Math.min(...means);
+
+        rowArr.reverse();
+
+        let flowData: FlowData[] = [];
+        let flowLast = 0;
+        const exitIndex = 10;
+        let bufferData: BufferData[] = [];
+        rowArr.forEach((value, index) => {
+            flowData.push(new FlowData(
+                value.cells[exitIndex].count,
+                value.cells[exitIndex].count - flowLast,
+                mean * index
+            ));
+            flowLast = value.cells[exitIndex].count;
+
+            let buffData = new BufferData([])
+            for (let i = 1; i < exitIndex; i++) {
+                if (value.cells[i].isBuffer) {
+                    buffData.counts.push(value.cells[i].count);
+                }
+            }
+
+            bufferData.push(buffData);
+        });
+
+        let controlData: ControlData = new ControlData([]);
+        buffers[buffers.length - 1].tasks.forEach(t => {
+            if ((t.firstTime >= 0) && (t.lastTime >= 0)) {
+                controlData.times.push(t.lastTime - t.firstTime);
+            }
+        })
+
+        setChartParam(new ChartParam(bufferData, flowData, controlData));
     }
-
-    const bufferInitParamHandler: BufferInitParamHandler = function (newBufferInitParam: BufferInitParam) {
-        bufferInitParam[newBufferInitParam.index] = newBufferInitParam;
-        setBufferInitParam([...bufferInitParam]);
-    }
-
-    function makeStepInitParams() {
-        return [
-            new StepInitParam(0, 1, 6, 0),
-            new StepInitParam(1, 1, 6, 0),
-            new StepInitParam(2, 1, 6, 0),
-            new StepInitParam(3, 1, 6, 0),
-            new StepInitParam(4, 1, 6, 0)
-        ];
-    }
-
-    const [stepInitParam, setStepInitParam] = useState<StepInitParam[]>(makeStepInitParams());
-
-    function makeBufferInitParams() {
-        return [
-            new BufferInitParam(0, 4, false),
-            new BufferInitParam(1, 4, false),
-            new BufferInitParam(2, 4, false),
-            new BufferInitParam(3, 4, false)
-        ];
-    }
-
-    const [bufferInitParam, setBufferInitParam] = useState<BufferInitParam[]>(makeBufferInitParams());
 
     function runClick() {
         let row: StatRow = new StatRow();
 
         const acceptFromIndexes = [0, 1, 3, 5, 7, 9];
 
-        row.cells.push(new StatData(true, -1, 0, 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[0].maxValue, acceptFromIndexes[stepInitParam[0].acceptFrom]));
-        row.cells.push(new StatData(true, bufferInitParam[0].value, 0, bufferInitParam[0].limit ? bufferInitParam[0].value : 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[1].maxValue, acceptFromIndexes[stepInitParam[1].acceptFrom]));
-        row.cells.push(new StatData(true, bufferInitParam[1].value, 0, bufferInitParam[1].limit ? bufferInitParam[1].value : 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[2].maxValue, acceptFromIndexes[stepInitParam[2].acceptFrom]));
-        row.cells.push(new StatData(true, bufferInitParam[2].value, 0, bufferInitParam[2].limit ? bufferInitParam[2].value : 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[3].maxValue, acceptFromIndexes[stepInitParam[3].acceptFrom]));
-        row.cells.push(new StatData(true, bufferInitParam[3].value, 0, bufferInitParam[3].limit ? bufferInitParam[3].value : 0, 0));
-        row.cells.push(new StatData(false, 0, 0, stepInitParam[4].maxValue, acceptFromIndexes[stepInitParam[4].acceptFrom]));
-        row.cells.push(new StatData(true, 0, 0, 0, 0));
+        const buffers: Buffer[] = [new Buffer(), new Buffer(), new Buffer(), new Buffer(), new Buffer()];
+
+        row.cells.push(new StatData(-1, true, true, false, -1, 0, 0, 0));
+        row.cells.push(new StatData(0, false, true, false, 0, 0, initParams.stepInitParam[0].maxValue, acceptFromIndexes[initParams.stepInitParam[0].acceptFrom]));
+        row.cells.push(new StatData(0, true, false, false, initParams.bufferInitParam[0].value, 0, initParams.bufferInitParam[0].limit ? initParams.bufferInitParam[0].value : 0, 0));
+        row.cells.push(new StatData(1, false, false, false, 0, 0, initParams.stepInitParam[1].maxValue, acceptFromIndexes[initParams.stepInitParam[1].acceptFrom]));
+        row.cells.push(new StatData(1, true, false, false, initParams.bufferInitParam[1].value, 0, initParams.bufferInitParam[1].limit ? initParams.bufferInitParam[1].value : 0, 0));
+        row.cells.push(new StatData(2, false, false, false, 0, 0, initParams.stepInitParam[2].maxValue, acceptFromIndexes[initParams.stepInitParam[2].acceptFrom]));
+        row.cells.push(new StatData(2, true, false, false, initParams.bufferInitParam[2].value, 0, initParams.bufferInitParam[2].limit ? initParams.bufferInitParam[2].value : 0, 0));
+        row.cells.push(new StatData(3, false, false, false, 0, 0, initParams.stepInitParam[3].maxValue, acceptFromIndexes[initParams.stepInitParam[3].acceptFrom]));
+        row.cells.push(new StatData(3, true, false, false, initParams.bufferInitParam[3].value, 0, initParams.bufferInitParam[3].limit ? initParams.bufferInitParam[3].value : 0, 0));
+        row.cells.push(new StatData(4, false, false, true, 0, 0, initParams.stepInitParam[4].maxValue, acceptFromIndexes[initParams.stepInitParam[4].acceptFrom]));
+        row.cells.push(new StatData(4, true, false, true, 0, 0, 0, 0));
+
+        for (let cell of row.cells) {
+            if (cell.isBuffer && !cell.isFirst) {
+                for (let i = 0; i < cell.count; i++) {
+                    buffers[cell.index].tasks.push(new Task(-1, -1));
+                }
+            }
+        }
 
         let rowArr = [row];
 
 
-        for (let i = 0; i < iterStep; i++) {
+        for (let iteration = 1; iteration <= iterStep; iteration++) {
             const newRow: StatRow = new StatRow();
-            let k = stepInitParam.length;
             let steps: number[] = [];
             for (let j = row.cells.length - 1; j >= 0; j--) {
                 let mc = 0;
                 if (!(row.cells[j].isBuffer)) {
-                    k--;
-                    mc = Math.floor(Math.random() * (stepInitParam[k].maxValue - stepInitParam[k].minValue)) + stepInitParam[k].minValue;
+                    mc = Math.floor(
+                        Math.random() * (initParams.stepInitParam[row.cells[j].index].maxValue -
+                            initParams.stepInitParam[row.cells[j].index].minValue)
+                    ) + initParams.stepInitParam[row.cells[j].index].minValue;
                     steps.push(j);
                 }
-                newRow.cells.unshift(new StatData(row.cells[j].isBuffer, row.cells[j].count, mc, row.cells[j].limit, row.cells[j].acceptFrom));
+                newRow.cells.unshift(new StatData(
+                    row.cells[j].index,
+                    row.cells[j].isBuffer,
+                    row.cells[j].isFirst,
+                    row.cells[j].isLast,
+                    row.cells[j].count,
+                    mc,
+                    row.cells[j].limit,
+                    row.cells[j].acceptFrom));
             }
 
             while (steps.length > 0) {
@@ -131,12 +187,37 @@ const Game = () => {
                     newRow.cells[j].count = cnt;
                     newRow.cells[j - 1].count -= cnt;
                     newRow.cells[j + 1].count += cnt;
+
+                    if (newRow.cells[j].isFirst) {
+                        const ni = newRow.cells[j + 1].index;
+                        for (let k = 0; k < cnt; k++) {
+                            buffers[ni].tasks.push(new Task(iteration, -1));
+                        }
+                    } else if (newRow.cells[j].isLast) {
+                        const oi = newRow.cells[j - 1].index;
+                        const ni = newRow.cells[j + 1].index;
+                        for (let k = 0; k < cnt; k++) {
+                            const task = buffers[oi].tasks.shift();
+                            // @ts-ignore
+                            task.lastTime = iteration;
+                            // @ts-ignore
+                            buffers[ni].tasks.push(task);
+                        }
+                    } else {
+                        const oi = newRow.cells[j - 1].index;
+                        const ni = newRow.cells[j + 1].index;
+                        for (let k = 0; k < cnt; k++) {
+                            // @ts-ignore
+                            buffers[ni].tasks.push(buffers[oi].tasks.shift());
+                        }
+                    }
                 }
             }
             rowArr.unshift(newRow);
             row = newRow;
         }
         setGridRow(rowArr);
+        makeCharts([...rowArr], buffers);
     }
 
     function handleChangeIterStep(event: React.ChangeEvent<HTMLInputElement>) {
@@ -169,54 +250,146 @@ const Game = () => {
     };
 
 
+    function setCoxGame1() {
+
+        setInitParams(new InitParams([
+            new StepInitParam(0, 1, 6, 0),
+            new StepInitParam(1, 1, 6, 0),
+            new StepInitParam(2, 1, 6, 0),
+            new StepInitParam(3, 1, 6, 0),
+            new StepInitParam(4, 1, 6, 0)
+        ], [
+            new BufferInitParam(0, 4, false),
+            new BufferInitParam(1, 4, false),
+            new BufferInitParam(2, 4, false),
+            new BufferInitParam(3, 4, false)
+        ]));
+    }
+
+    function setCoxGame2() {
+
+        setInitParams(new InitParams([
+            new StepInitParam(0, 7, 12, 0),
+            new StepInitParam(1, 7, 12, 0),
+            new StepInitParam(2, 7, 12, 0),
+            new StepInitParam(3, 1, 6, 0),
+            new StepInitParam(4, 7, 12, 0)
+        ], [
+            new BufferInitParam(0, 4, false),
+            new BufferInitParam(1, 4, false),
+            new BufferInitParam(2, 4, false),
+            new BufferInitParam(3, 4, false)
+        ]));
+    }
+
+    function setCoxGame3() {
+
+        setInitParams(new InitParams([
+            new StepInitParam(0, 7, 12, 4),
+            new StepInitParam(1, 7, 12, 0),
+            new StepInitParam(2, 7, 12, 0),
+            new StepInitParam(3, 1, 6, 0),
+            new StepInitParam(4, 7, 12, 0)
+        ], [
+            new BufferInitParam(0, 4, false),
+            new BufferInitParam(1, 4, false),
+            new BufferInitParam(2, 20, false),
+            new BufferInitParam(3, 4, false)
+        ]));
+    }
+
+    function setCoxGame4() {
+
+        setInitParams(new InitParams([
+            new StepInitParam(0, 7, 12, 4),
+            new StepInitParam(1, 7, 12, 0),
+            new StepInitParam(2, 7, 12, 0),
+            new StepInitParam(3, 4, 6, 0),
+            new StepInitParam(4, 7, 12, 0)
+        ], [
+            new BufferInitParam(0, 4, false),
+            new BufferInitParam(1, 4, false),
+            new BufferInitParam(2, 20, false),
+            new BufferInitParam(3, 4, false)
+        ]));
+    }
+
+    function setKanbanGame() {
+
+        setInitParams(new InitParams([
+            new StepInitParam(0, 7, 12, 0),
+            new StepInitParam(1, 7, 12, 0),
+            new StepInitParam(2, 7, 12, 0),
+            new StepInitParam(3, 1, 6, 0),
+            new StepInitParam(4, 7, 12, 0)
+        ], [
+            new BufferInitParam(0, 6, true),
+            new BufferInitParam(1, 6, true),
+            new BufferInitParam(2, 20, true),
+            new BufferInitParam(3, 6, true)
+        ]));
+    }
+
     return (
         <div>
-            Число итераций <input
-            type="number"
-            placeholder="Число итерациий"
-            min={10} max={1000}
-            value={iterStep}
-            onChange={handleChangeIterStep}
-        />&nbsp;
-            <button onClick={runClick}>Запустить</button>
-            <br/>
-            <table className="gridTable">
-                <thead>
-                <tr>
-                    <th>&nbsp;</th>
-                    <th>Склад</th>
-                    <th>Этап 1</th>
-                    <th>Буфер 1</th>
-                    <th>Этап 2</th>
-                    <th>Буфер 2</th>
-                    <th>Этап 3</th>
-                    <th>Буфер 3</th>
-                    <th>Этап 4</th>
-                    <th>Буфер 4</th>
-                    <th>Этап 5</th>
-                    <th>Выход</th>
-                </tr>
-                <tr>
-                    <th>#</th>
-                    <th>&#x221e;</th>
-                    <th><StepSelector initParam={stepInitParam[0]} handler={stepInitParamHandler} key="ss-1"/></th>
-                    <th><BufferSelector initParam={bufferInitParam[0]} handler={bufferInitParamHandler} key="bs-1"/>
-                    </th>
-                    <th><StepSelector initParam={stepInitParam[1]} handler={stepInitParamHandler} key="ss-2"/></th>
-                    <th><BufferSelector initParam={bufferInitParam[1]} handler={bufferInitParamHandler}
-                                        key="bs-1"/></th>
-                    <th><StepSelector initParam={stepInitParam[2]} handler={stepInitParamHandler} key="ss-3"/></th>
-                    <th><BufferSelector initParam={bufferInitParam[2]} handler={bufferInitParamHandler}
-                                        key="bs-1"/></th>
-                    <th><StepSelector initParam={stepInitParam[3]} handler={stepInitParamHandler} key="ss-4"/></th>
-                    <th><BufferSelector initParam={bufferInitParam[3]} handler={bufferInitParamHandler}
-                                        key="bs-1"/></th>
-                    <th><StepSelector initParam={stepInitParam[4]} handler={stepInitParamHandler} key="ss-5"/></th>
-                    <th>&nbsp;</th>
-                </tr>
-                </thead>
-                <BodyData/>
-            </table>
+            <div>
+                <button onClick={setCoxGame1}>Кокс. Новая цель. Игра 1</button>
+                &nbsp;
+                <button onClick={setCoxGame2}>Кокс. Новая цель. Игра 2</button>
+                &nbsp;
+                <button onClick={setCoxGame3}>Кокс. Новая цель. Игра 3</button>
+                &nbsp;
+                <button onClick={setCoxGame4}>Кокс. Новая цель. Игра 4</button>
+                &nbsp;
+                <button onClick={setKanbanGame}>WIP лимиты</button>
+                &nbsp;
+            </div>
+            <div>Число итераций <input
+                type="number"
+                placeholder="Число итерациий"
+                min={10} max={1000}
+                value={iterStep}
+                onChange={handleChangeIterStep}
+            />&nbsp;
+                <button onClick={runClick}>Запустить</button>
+                <br/>
+                {chartParam ? (<Chart bufferData={chartParam.bufferData} flowData={chartParam.flowData}
+                                      controlData={chartParam.controlData}/>) : null}
+                <br/>
+                <table className="gridTable">
+                    <thead>
+                    <tr>
+                        <th>&nbsp;</th>
+                        <th>Склад</th>
+                        <th>Этап 1</th>
+                        <th>Буфер 1</th>
+                        <th>Этап 2</th>
+                        <th>Буфер 2</th>
+                        <th>Этап 3</th>
+                        <th>Буфер 3</th>
+                        <th>Этап 4</th>
+                        <th>Буфер 4</th>
+                        <th>Этап 5</th>
+                        <th>Выход</th>
+                    </tr>
+                    <tr>
+                        <th>#</th>
+                        <th>&#x221e;</th>
+                        <th><StepSelector index={0} key="ss-1"/></th>
+                        <th><BufferSelector index={0} key="bs-1"/></th>
+                        <th><StepSelector index={1} key="ss-2"/></th>
+                        <th><BufferSelector index={1} key="bs-1"/></th>
+                        <th><StepSelector index={2} key="ss-3"/></th>
+                        <th><BufferSelector index={2} key="bs-1"/></th>
+                        <th><StepSelector index={3} key="ss-4"/></th>
+                        <th><BufferSelector index={3} key="bs-1"/></th>
+                        <th><StepSelector index={4} key="ss-5"/></th>
+                        <th>&nbsp;</th>
+                    </tr>
+                    </thead>
+                    <BodyData/>
+                </table>
+            </div>
         </div>
     );
 };

@@ -1,47 +1,31 @@
-import React, {FC, useState} from "react";
+import React, {FC} from "react";
+import {IndexParam, StepInitParam, useGameContext} from "./GameContext"
 
-class StepInitParam {
-    index: number;
-    minValue: number;
-    maxValue: number;
-    acceptFrom: number;
 
-    constructor(index: number, minValue: number, maxValue: number, acceptFrom: number) {
-        this.index = index;
-        this.maxValue = maxValue;
-        this.minValue = minValue;
-        this.acceptFrom = acceptFrom;
-    }
-}
+const StepSelector: FC<IndexParam> = (val: IndexParam) => {
 
-class StepInitComponentParam {
-    initParam: StepInitParam;
-    handler: StepInitParamHandler;
-
-    constructor(initParam: StepInitParam, handler: StepInitParamHandler) {
-        this.initParam = initParam;
-        this.handler = handler;
-    }
-}
-
-const StepSelector: FC<StepInitComponentParam> = (param: StepInitComponentParam) => {
-
-    const [minValue, setMinValue] = useState(param.initParam.minValue);
-    const [maxValue, setMaxValue] = useState(param.initParam.maxValue);
-    const [acceptFrom, setAcceptFrom] = useState(param.initParam.acceptFrom);
+    const {initParams, setInitParams} = useGameContext();
 
     function handleChangeMin(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = Math.max(0, Math.min(maxValue, 100, Number(event.target.value)));
-        setMinValue(value);
 
-        param.handler(new StepInitParam(param.initParam.index, value, maxValue, acceptFrom));
+        let value = Number(event.target.value);
+        value = Math.max(0, Math.min(initParams.stepInitParam[val.index].maxValue, 100, value));
+
+        let newInitParams = structuredClone(initParams);
+        newInitParams.stepInitParam[val.index].minValue = value;
+
+        setInitParams(newInitParams);
     }
 
     function handleChangeMax(event: React.ChangeEvent<HTMLInputElement>) {
-        const value = Math.max(minValue, 0, Math.min(100, Number(event.target.value)));
-        setMaxValue(value);
 
-        param.handler(new StepInitParam(param.initParam.index, minValue, value, acceptFrom));
+        let value = Number(event.target.value);
+        value = Math.max(initParams.stepInitParam[val.index].minValue, 0, Math.min(100, value));
+
+        let newInitParams = structuredClone(initParams);
+        newInitParams.stepInitParam[val.index].maxValue = value;
+
+        setInitParams(newInitParams);
     }
 
     let options = [
@@ -49,49 +33,47 @@ const StepSelector: FC<StepInitComponentParam> = (param: StepInitComponentParam)
     ];
 
     for (let i = 1; i <= 5; i++) {
-        if (i !== param.initParam.index + 1) {
+        if (i !== val.index + 1) {
             options.push({value: i, label: 'Ведомый от этапа ' + i});
         }
     }
 
-    function setAcceptFromOption( newValue: number) {
+    function setAcceptFromOption(newValue: number) {
 
-        setAcceptFrom(newValue);
+        let newInitParams = structuredClone(initParams);
+        newInitParams.stepInitParam[val.index].acceptFrom = newValue;
 
-        param.handler(new StepInitParam(param.initParam.index, minValue, maxValue, newValue));
+        setInitParams(newInitParams);
     }
 
     return (
-        <p><select
-            onChange={e => setAcceptFromOption(Number(e.target.value))}
+        <p><select value={initParams.stepInitParam[val.index].acceptFrom}
+                   onChange={e => setAcceptFromOption(Number(e.target.value))}
         >
             {
-                options.map(({value,label}) =>
-                    <option key={"stepsel-"+param.initParam.index+"-val-"+value} value={value}>{label}</option> )
+                options.map(({value, label}) =>
+                    <option key={"stepsel-" + val.index + "-val-" + value} value={value}>{label}</option>)
             }
         </select><br/>
             Мин: <input
                 type="number"
                 placeholder="Min"
-                value={minValue} min={0} max={100}
+                value={initParams.stepInitParam[val.index].minValue} min={0} max={100}
                 onChange={handleChangeMin}
                 title="Минимальная мощность шага"
             /><br/>Макс: <input
                 type="number"
                 placeholder="Max"
-                value={maxValue} min={0} max={100}
+                value={initParams.stepInitParam[val.index].maxValue} min={0} max={100}
                 onChange={handleChangeMax}
                 title="Предельная мощность шага"
             /></p>
     );
 }
-type StepInitParamHandler = (a: StepInitParam) => void;
 
 
 export {
     StepSelector,
     StepInitParam
 };
-
-export type {StepInitParamHandler};
 
