@@ -337,16 +337,31 @@ const Game = () => {
 
     return (
         <div>
-            <div>
-                <button onClick={setCoxGame1}>Кокс. Новая цель. Игра 1</button>
+            <div className="predefinedButtons">
+                <button onClick={setCoxGame1}
+                        title="Настройки по первой игре из книги Дж.Кокса, Д. Джейкоб, С. Бергланд &quot;Новая цель&quot;&#13;Сбалансированная система">
+                    Кокс. Новая цель. Игра 1
+                </button>
                 &nbsp;
-                <button onClick={setCoxGame2}>Кокс. Новая цель. Игра 2</button>
+                <button onClick={setCoxGame2}
+                        title="Настройки по второй игре из книги Дж.Кокса, Д. Джейкоб, С. Бергланд &quot;Новая цель&quot;&#13;Разбалансированная система">
+                    Кокс. Новая цель. Игра 2
+                </button>
                 &nbsp;
-                <button onClick={setCoxGame3}>Кокс. Новая цель. Игра 3</button>
+                <button onClick={setCoxGame3}
+                        title="Настройки по третьей игре из книги Дж.Кокса, Д. Джейкоб, С. Бергланд &quot;Новая цель&quot;&#13;Разбалансированная система с системой барабан-буфер-канат">
+                    Кокс. Новая цель. Игра 3
+                </button>
                 &nbsp;
-                <button onClick={setCoxGame4}>Кокс. Новая цель. Игра 4</button>
+                <button onClick={setCoxGame4}
+                        title="Настройки по четвёртой игре из книги Дж.Кокса, Д. Джейкоб, С. Бергланд &quot;Новая цель&quot;&#13;Разбалансированная система с системой барабан-буфер-канат с улучшеным ограничением">
+                    Кокс. Новая цель. Игра 4
+                </button>
                 &nbsp;
-                <button onClick={setKanbanGame}>WIP лимиты</button>
+                <button onClick={setKanbanGame}
+                        title="Настройки по системе Канбан-метода с ограничениями незавершенной работы">
+                    WIP лимиты
+                </button>
                 &nbsp;
             </div>
             <div>Число итераций <input

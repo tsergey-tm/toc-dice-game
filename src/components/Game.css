@@ -25,6 +25,7 @@
     border-width: 1px 0 0 0;
     border-color: black;
     border-style: solid;
+    vertical-align: top;
 }
 
 .gridTable > thead > tr > th {
@@ -32,6 +33,7 @@
     border-width: 1px 0 0 1px;
     border-color: black;
     border-style: solid;
+    vertical-align: top;
 }
 
 .gridTable > tbody > tr > td:first-child {
@@ -54,4 +56,8 @@
 
 .gridMay {
     color: darkred;
+}
+
+.predefinedButtons {
+    margin-bottom: 0.5em;
 }

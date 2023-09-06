@@ -47,27 +47,30 @@ const StepSelector: FC<IndexParam> = (val: IndexParam) => {
     }
 
     return (
-        <p><select value={initParams.stepInitParam[val.index].acceptFrom}
-                   onChange={e => setAcceptFromOption(Number(e.target.value))}
-        >
-            {
-                options.map(({value, label}) =>
-                    <option key={"stepsel-" + val.index + "-val-" + value} value={value}>{label}</option>)
-            }
-        </select><br/>
+        <div className="initParams">
+            <select value={initParams.stepInitParam[val.index].acceptFrom}
+                    onChange={e => setAcceptFromOption(Number(e.target.value))}
+                    title="Самостоятельный узел берёт настройки из параметров ниже&#13;
+                    Ведомый берёт число элементов для перемещения от ведущего, но не больше собственной максимальной мощности"
+            >
+                {
+                    options.map(({value, label}) =>
+                        <option key={"stepsel-" + val.index + "-val-" + value} value={value}>{label}</option>)
+                }
+            </select><br/>
             Мин: <input
-                type="number"
-                placeholder="Min"
-                value={initParams.stepInitParam[val.index].minValue} min={0} max={100}
-                onChange={handleChangeMin}
-                title="Минимальная мощность шага"
-            /><br/>Макс: <input
-                type="number"
-                placeholder="Max"
-                value={initParams.stepInitParam[val.index].maxValue} min={0} max={100}
-                onChange={handleChangeMax}
-                title="Предельная мощность шага"
-            /></p>
+            type="number"
+            placeholder="Min"
+            value={initParams.stepInitParam[val.index].minValue} min={0} max={100}
+            onChange={handleChangeMin}
+            title="Минимальная мощность узла"
+        /><br/>Макс: <input
+            type="number"
+            placeholder="Max"
+            value={initParams.stepInitParam[val.index].maxValue} min={0} max={100}
+            onChange={handleChangeMax}
+            title="Предельная мощность узла"
+        /></div>
     );
 }
 

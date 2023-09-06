@@ -25,16 +25,21 @@ const BufferSelector: FC<IndexParam> = (val: IndexParam) => {
     }
 
     return (
-        <p>Старт: <input
+        <div className="initParams">Старт: <input
             type="number"
             placeholder="Start"
             value={initParams.bufferInitParam[val.index].value} min={0} max={1000}
             onChange={handleChangeValue}
+            title="Начальное количество элементов в буфере,&#13;а так же значение лимита, если выбрано, что буфер лимитированый"
         /><br/>
             <input type="checkbox" id={"limit-" + initParams.bufferInitParam[val.index].index}
-                   name="лимит" checked={initParams.bufferInitParam[val.index].limit} onChange={handleChangeLimit}/>
-            <label htmlFor={"limit-" + val.index}>лимит</label>
-        </p>
+                   name="лимит" checked={initParams.bufferInitParam[val.index].limit} onChange={handleChangeLimit}
+                   title="Лимитированый буфер или нет.&#13;Значение лимита равно начальному количеству элементов в буфере"
+            />
+            <label htmlFor={"limit-" + val.index}
+                   title="Лимитированый буфер или нет.&#13;Значение лимита равно начальному количеству элементов в буфере"
+            >лимит</label>
+        </div>
     );
 }
 
