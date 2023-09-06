@@ -142,7 +142,7 @@ const Game = () => {
                 if (!(row.cells[j].isBuffer)) {
                     mc = Math.floor(
                         Math.random() * (initParams.stepInitParam[row.cells[j].index].maxValue -
-                            initParams.stepInitParam[row.cells[j].index].minValue)
+                            initParams.stepInitParam[row.cells[j].index].minValue + 1)
                     ) + initParams.stepInitParam[row.cells[j].index].minValue;
                     steps.push(j);
                 }
