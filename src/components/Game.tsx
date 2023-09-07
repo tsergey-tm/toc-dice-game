@@ -270,11 +270,11 @@ const Game = () => {
     function setCoxGame2() {
 
         setInitParams(new InitParams([
-            new StepInitParam(0, 7, 12, 0),
-            new StepInitParam(1, 7, 12, 0),
-            new StepInitParam(2, 7, 12, 0),
+            new StepInitParam(0, 2, 12, 0),
+            new StepInitParam(1, 2, 12, 0),
+            new StepInitParam(2, 2, 12, 0),
             new StepInitParam(3, 1, 6, 0),
-            new StepInitParam(4, 7, 12, 0)
+            new StepInitParam(4, 2, 12, 0)
         ], [
             new BufferInitParam(0, 4, false),
             new BufferInitParam(1, 4, false),
@@ -287,11 +287,11 @@ const Game = () => {
     function setCoxGame3() {
 
         setInitParams(new InitParams([
-            new StepInitParam(0, 7, 12, 4),
-            new StepInitParam(1, 7, 12, 0),
-            new StepInitParam(2, 7, 12, 0),
+            new StepInitParam(0, 2, 12, 4),
+            new StepInitParam(1, 2, 12, 0),
+            new StepInitParam(2, 2, 12, 0),
             new StepInitParam(3, 1, 6, 0),
-            new StepInitParam(4, 7, 12, 0)
+            new StepInitParam(4, 2, 12, 0)
         ], [
             new BufferInitParam(0, 4, false),
             new BufferInitParam(1, 4, false),
@@ -304,11 +304,11 @@ const Game = () => {
     function setCoxGame4() {
 
         setInitParams(new InitParams([
-            new StepInitParam(0, 7, 12, 4),
-            new StepInitParam(1, 7, 12, 0),
-            new StepInitParam(2, 7, 12, 0),
+            new StepInitParam(0, 2, 12, 4),
+            new StepInitParam(1, 2, 12, 0),
+            new StepInitParam(2, 2, 12, 0),
             new StepInitParam(3, 4, 6, 0),
-            new StepInitParam(4, 7, 12, 0)
+            new StepInitParam(4, 2, 12, 0)
         ], [
             new BufferInitParam(0, 4, false),
             new BufferInitParam(1, 4, false),
@@ -321,11 +321,11 @@ const Game = () => {
     function setKanbanGame() {
 
         setInitParams(new InitParams([
-            new StepInitParam(0, 7, 12, 0),
-            new StepInitParam(1, 7, 12, 0),
-            new StepInitParam(2, 7, 12, 0),
+            new StepInitParam(0, 2, 12, 0),
+            new StepInitParam(1, 2, 12, 0),
+            new StepInitParam(2, 2, 12, 0),
             new StepInitParam(3, 1, 6, 0),
-            new StepInitParam(4, 7, 12, 0)
+            new StepInitParam(4, 2, 12, 0)
         ], [
             new BufferInitParam(0, 6, true),
             new BufferInitParam(1, 6, true),
