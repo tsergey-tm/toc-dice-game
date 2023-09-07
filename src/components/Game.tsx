@@ -327,10 +327,10 @@ const Game = () => {
             new StepInitParam(3, 1, 6, 0),
             new StepInitParam(4, 2, 12, 0)
         ], [
-            new BufferInitParam(0, 4, true),
-            new BufferInitParam(1, 4, true),
+            new BufferInitParam(0, 6, true),
+            new BufferInitParam(1, 6, true),
             new BufferInitParam(2, 20, true),
-            new BufferInitParam(3, 4, false)
+            new BufferInitParam(3, 6, false)
         ]));
         setIterStep(100);
     }
