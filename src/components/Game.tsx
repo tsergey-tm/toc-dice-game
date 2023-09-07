@@ -330,7 +330,7 @@ const Game = () => {
             new BufferInitParam(0, 4, true),
             new BufferInitParam(1, 4, true),
             new BufferInitParam(2, 20, true),
-            new BufferInitParam(3, 4, true)
+            new BufferInitParam(3, 4, false)
         ]));
         setIterStep(100);
     }
