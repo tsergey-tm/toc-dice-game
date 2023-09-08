@@ -10,7 +10,7 @@ import {BarChart, LineChart} from 'echarts/charts';
 import {GridComponent, LegendComponent, TitleComponent, ToolboxComponent, TooltipComponent,} from 'echarts/components';
 // Import renderer, note that introducing the CanvasRenderer or SVGRenderer is a required step
 import {CanvasRenderer,} from 'echarts/renderers';
-import {BarSeriesOption, EChartsOption, LineSeriesOption} from "echarts";
+import {EChartsOption, LineSeriesOption, SeriesOption} from "echarts";
 
 // Register the required components
 echarts.use(
@@ -156,8 +156,6 @@ const Chart: FC<ChartParam> = (param: ChartParam) => {
                     name: "Буффер " + (i + 1),
                     type: 'line',
                     stack: "buffers",
-                    smooth: true,
-                    smoothMonotone: 'x',
                     itemStyle: {
                         opacity: 0,
                     },
@@ -171,7 +169,7 @@ const Chart: FC<ChartParam> = (param: ChartParam) => {
         return serBuffer;
     }
 
-    function makeControlSeries(): BarSeriesOption {
+    function makeControlSeries(): SeriesOption[] {
 
         let control: number[] = [];
         param.controlData.times.forEach(value => {
@@ -183,30 +181,58 @@ const Chart: FC<ChartParam> = (param: ChartParam) => {
         });
 
         let serControlData: number[][] = [];
+        let serControlPercData: string[][] = [];
+        let sum = param.controlData.times.length;
+        let count = 0;
         control.forEach((value, index) => {
             if (value > 0) {
                 serControlData.push([index, value]);
             }
+            if (sum > 0) {
+                count += value;
+                serControlPercData.push([String(index), (100 * count / sum).toFixed(1)]);
+            }
         });
 
-        return {
-            xAxisIndex: 2,
-            yAxisIndex: 2,
-            name: "Время производства",
-            type: 'bar',
-            itemStyle: {
-                borderColor: "rgb(102,140,255)",
-                color: "rgba(102,140,255,0.75)",
+        return [
+            {
+                xAxisIndex: 2,
+                yAxisIndex: 2,
+                name: "Время производства",
+                type: 'bar',
+                itemStyle: {
+                    borderColor: "rgb(102,140,255)",
+                    color: "rgba(102,140,255,0.75)",
+                },
+                data: serControlData,
             },
-            data: serControlData,
-        };
+            {
+                xAxisIndex: 2,
+                yAxisIndex: 3,
+                name: "Процентиль времени производства",
+                type: 'line',
+                itemStyle: {
+                    borderColor: "rgba(191,128,255)",
+                    color: "rgba(191,128,255)",
+                    opacity: 0
+                },
+                lineStyle: {
+                    color: "rgb(191,128,255)",
+                },
+                areaStyle: {
+                    origin: 'auto',
+                    opacity: 0
+                },
+                data: serControlPercData,
+            }
+        ];
     }
 
     let {serFlow, serFlowMean, serFlowMeanDelta} = makeFlowSeries();
 
-    let serBuffer = makeBufferSeries();
+    let serBuffer: SeriesOption[] = makeBufferSeries();
 
-    let serControl = makeControlSeries();
+    let serControl: SeriesOption[] = makeControlSeries();
 
     const options: EChartsOption = {
 
@@ -330,8 +356,22 @@ const Chart: FC<ChartParam> = (param: ChartParam) => {
                 },
                 min: 0
             },
+            {
+                gridIndex: 2,
+                minInterval: 1,
+                position: 'right',
+                axisPointer: {
+                    show: true,
+                    triggerTooltip: false,
+                },
+                axisLabel: {
+                    hideOverlap: true,
+                },
+                min: 0,
+                max: 100
+            },
         ],
-        series: [serFlow, serFlowMean, serFlowMeanDelta, ...serBuffer, serControl],
+        series: [serFlow, serFlowMean, serFlowMeanDelta, ...serBuffer, ...serControl],
     };
 
     return (
