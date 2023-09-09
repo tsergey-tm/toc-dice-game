@@ -347,6 +347,7 @@ const Chart: FC<ChartParam> = (param: ChartParam) => {
             {
                 gridIndex: 2,
                 minInterval: 1,
+                alignTicks: true,
                 axisPointer: {
                     show: true,
                     triggerTooltip: false,
@@ -359,6 +360,7 @@ const Chart: FC<ChartParam> = (param: ChartParam) => {
             {
                 gridIndex: 2,
                 minInterval: 1,
+                alignTicks: true,
                 position: 'right',
                 axisPointer: {
                     show: true,
