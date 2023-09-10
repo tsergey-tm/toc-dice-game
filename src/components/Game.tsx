@@ -335,6 +335,23 @@ const Game = () => {
         setIterStep(100);
     }
 
+    function setBadBuffersGame() {
+
+        setInitParams(new InitParams([
+            new StepInitParam(0, 2, 12, 4),
+            new StepInitParam(1, 2, 12, 0),
+            new StepInitParam(2, 2, 12, 0),
+            new StepInitParam(3, 1, 6, 0),
+            new StepInitParam(4, 2, 12, 0)
+        ], [
+            new BufferInitParam(0, 8, false),
+            new BufferInitParam(1, 8, false),
+            new BufferInitParam(2, 40, false),
+            new BufferInitParam(3, 8, false)
+        ]));
+        setIterStep(20);
+    }
+
     return (
         <div>
             <div className="predefinedButtons">
@@ -361,6 +378,11 @@ const Game = () => {
                 <button onClick={setKanbanGame}
                         title="Настройки по системе Канбан-метода с ограничениями незавершенной работы">
                     WIP лимиты
+                </button>
+                &nbsp;
+                <button onClick={setBadBuffersGame}
+                        title="Игра 3 с буфферами в 2 раза больше">
+                    Негатив от незавершенки
                 </button>
                 &nbsp;
             </div>
