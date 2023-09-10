@@ -226,6 +226,10 @@ const Game = () => {
 
     const BodyData = () => {
 
+        let means: number[] = [];
+        initParams?.stepInitParam.forEach(v => means.push((v.minValue + v.maxValue) / 2));
+        const mean = Math.min(...means);
+
         return <tbody>
         {grid.map((item, index) => {
             const gl = grid.length;
@@ -238,7 +242,10 @@ const Game = () => {
                                 {(st.count < 0) ? (st.count + 1).toLocaleString() : st.count.toLocaleString()}
                             </td>;
                         } else {
-                            return <td key={"grid-" + index + "-" + stIndex}><span
+                            const cellClass: string = (st.mayCount < mean) ? "Bad" :
+                                ((st.count < mean) ? "Fail" :
+                                    (st.count < st.mayCount ? "Mid" : "Good"))
+                            return <td key={"grid-" + index + "-" + stIndex} className={"gridBg" + cellClass}><span
                                 className="gridCount">{st.count.toLocaleString()}</span><br/><span
                                 className="gridMay">{st.mayCount.toLocaleString()}</span></td>;
                         }

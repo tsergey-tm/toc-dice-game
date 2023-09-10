@@ -54,6 +54,22 @@
     color: limegreen;
 }
 
+.gridBgBad {
+    background-color: rgba(191, 0, 64, 0.1);
+}
+
+.gridBgFail {
+    background-color: rgba(0, 48, 191, 0.1);
+}
+
+.gridBgMid {
+    background-color: rgba(191, 179, 0, 0.1);
+}
+
+.gridBgGood {
+    background-color: rgba(49, 204, 49, 0.1);
+}
+
 .gridMay {
     color: darkred;
 }
