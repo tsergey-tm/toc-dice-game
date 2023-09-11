@@ -58,7 +58,7 @@ const Game = () => {
 
     const [chartParam, setChartParam] = useState<null | ChartParam>(null);
 
-    const [iterStep, setIterStep] = useState(20);
+    const [iterStep, setIterStep] = useState(200);
 
     const [grid, setGridRow] = useState<StatRow[]>([]);
 
