@@ -271,7 +271,7 @@ const Game = () => {
             new BufferInitParam(2, 4, false),
             new BufferInitParam(3, 4, false)
         ]));
-        setIterStep(20);
+        setIterStep(200);
     }
 
     function setCoxGame2() {
@@ -288,7 +288,7 @@ const Game = () => {
             new BufferInitParam(2, 4, false),
             new BufferInitParam(3, 4, false)
         ]));
-        setIterStep(20);
+        setIterStep(200);
     }
 
     function setCoxGame3() {
@@ -305,7 +305,7 @@ const Game = () => {
             new BufferInitParam(2, 20, false),
             new BufferInitParam(3, 4, false)
         ]));
-        setIterStep(20);
+        setIterStep(200);
     }
 
     function setCoxGame4() {
@@ -322,7 +322,7 @@ const Game = () => {
             new BufferInitParam(2, 20, false),
             new BufferInitParam(3, 4, false)
         ]));
-        setIterStep(20);
+        setIterStep(200);
     }
 
     function setKanbanGame() {
@@ -339,7 +339,7 @@ const Game = () => {
             new BufferInitParam(2, 20, true),
             new BufferInitParam(3, 6, false)
         ]));
-        setIterStep(100);
+        setIterStep(200);
     }
 
     function setBadBuffersGame() {
@@ -356,7 +356,7 @@ const Game = () => {
             new BufferInitParam(2, 40, false),
             new BufferInitParam(3, 8, false)
         ]));
-        setIterStep(20);
+        setIterStep(200);
     }
 
     return (
