@@ -389,7 +389,7 @@ const Game = () => {
                 &nbsp;
                 <button onClick={setBadBuffersGame}
                         title="Игра 3 с буфферами в 2 раза больше">
-                    Негатив от незавершенки
+                    Больше незавершенки
                 </button>
                 &nbsp;
             </div>
